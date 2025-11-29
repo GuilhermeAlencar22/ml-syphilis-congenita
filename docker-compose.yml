@@ -3,7 +3,7 @@ version: "3.9"
 services:
   jupyterlab:
     build:
-      context: .               # NOVO: contexto é a raiz do projeto
+      context: .
       dockerfile: jupyterlab/Dockerfile
     container_name: jupyterlab-syphilis
     ports:
@@ -15,25 +15,45 @@ services:
 
   mlflow:
     build:
-      context: .               # também pode usar a raiz
+      context: .
       dockerfile: mlflow/Dockerfile
     container_name: mlflow-syphilis
     ports:
-      - "5001:5000"
+      - "5001:5000"   # host:container (mlflow roda na 5000 dentro do container)
     volumes:
       - ./mlflow/mlruns:/mlruns
     environment:
-      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+      MLFLOW_TRACKING_URI: "http://0.0.0.0:5000"
     command: mlflow ui --backend-store-uri /mlruns --host 0.0.0.0 --port 5000
 
   fastapi:
     build:
-      context: .               # NOVO: contexto raiz
+      context: .
       dockerfile: fastapi/Dockerfile
     container_name: fastapi-syphilis
     ports:
       - "8000:8000"
     volumes:
       - ./:/app
-    working_dir: /app
-    command: uvicorn fastapi.main:app --host 0.0.0.0 --port 8000 --reload
+    working_dir: /app/fastapi
+    environment:
+      MINIO_ENDPOINT: "minio-syphilis:9000"
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: "admin12345"
+      MINIO_BUCKET: "syphilis-datasets"
+    depends_on:
+      - minio
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  minio:
+    image: minio/minio
+    container_name: minio-syphilis
+    environment:
+      MINIO_ROOT_USER: "admin"
+      MINIO_ROOT_PASSWORD: "admin12345"
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # API S3 compatível
+      - "9001:9001"   # Console web do MinIO
+    volumes:
+      - ./minio-data:/data
