@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  jupyterlab:
+    build:
+      context: .               # NOVO: contexto é a raiz do projeto
+      dockerfile: jupyterlab/Dockerfile
+    container_name: jupyterlab-syphilis
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
+  mlflow:
+    build:
+      context: .               # também pode usar a raiz
+      dockerfile: mlflow/Dockerfile
+    container_name: mlflow-syphilis
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./mlflow/mlruns:/mlruns
+    environment:
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+    command: mlflow ui --backend-store-uri /mlruns --host 0.0.0.0 --port 5000
+
+  fastapi:
+    build:
+      context: .               # NOVO: contexto raiz
+      dockerfile: fastapi/Dockerfile
+    container_name: fastapi-syphilis
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: uvicorn fastapi.main:app --host 0.0.0.0 --port 8000 --reload
