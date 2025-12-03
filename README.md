@@ -1,6 +1,12 @@
 # 📌 Predicting Congenital Syphilis Cases — Pipeline Completo e Reprodutível
 
-**Autores:** Henrique L. Q. Guimarães • Guilherme A. A. Corrêa • Gustavo H. M. Laporte • Paulo H. C. Portella  
+**Autores:** 
+* Henrique L. Q. Guimarães 
+* Guilherme A. A. Corrêa 
+* Gustavo H. M. Laporte 
+* Paulo H. C. Portella  
+
+
 **Instituição:** Cesar School — Ciência da Computação — Turma 6A — 2025.2
 
 ---
