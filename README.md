@@ -1,346 +1,311 @@
-🧬 Projeto: Predição de Sífilis Congênita
+# 📌 Predicting Congenital Syphilis Cases — Pipeline Completo e Reprodutível
 
-Integrantes do grupo:
+**Autores:** Henrique L. Q. Guimarães • Guilherme A. A. Corrêa • Gustavo H. M. Laporte • Paulo H. C. Portella  
+**Instituição:** Cesar School — Ciência da Computação — Turma 6A — 2025.2
 
-Guilherme Alencar Augusto Corrêa – @GuilhermeAlencar22
+---
 
-Henrique Queiroz Lôbo – @HenriqueQL
+## 📄 Resumo
 
-Disciplina: Aprendizado de Máquina – 2025.2
-Instituição: CESAR School
+Este projeto implementa um **pipeline completo de aprendizado de máquina, inteiramente containerizado**, para reprodução, avaliação crítica e extensão do artigo *Predicting Congenital Syphilis Cases* (2023).
 
-📖 1. Introdução
+O pipeline integra as seguintes tecnologias para cobrir todo o ciclo ML:
+* **Ingestão:** `FastAPI`
+* **Armazenamento:** `MinIO/S3`
+* **Processamento/Modelagem:** `JupyterLab`
+* **Estruturação dos Dados:** `SQLite / PostgreSQL / Snowflake`
+* **Rastreamento de Experimentos:** `MLFlow`
+* **Dashboards Online:** `ThingsBoard + Trendz`
 
-O projeto da disciplina Aprendizado de Máquina (AM) tem como objetivo a reprodução e aprimoramento de um artigo científico que explore o uso de técnicas de Machine Learning em um problema real.
+Os experimentos reproduziram rigorosamente a metodologia original, confirmando sua dificuldade e destacando os modelos **AdaBoost** e **SVM**, que atingiram **F1-Score próximo de 63%**.
 
-Nesta edição, o desenvolvimento foi realizado sobre uma arquitetura moderna em contêineres Docker, integrando as etapas de coleta, processamento, modelagem e visualização em um pipeline executável via Docker Compose.
+---
 
-A implementação abrange as seguintes camadas principais:
+## 🧠 Abstract (English)
 
-Camada
+This project delivers a **fully containerized, reproducible machine learning pipeline** for replicating and extending the scientific article *Predicting Congenital Syphilis Cases*. The system integrates `FastAPI`, `MinIO/S3`, `MLFlow`, `JupyterLab`, and `ThingsBoard`, covering ingestion, storage, processing, modeling, experiment tracking, and dashboard visualization. Results confirm the challenges of predicting congenital syphilis and highlight **AdaBoost** and **SVM** as the most effective models ($\approx 63\%$ F1-score).
 
-Função
+---
 
-Ingestão (FastAPI)
+## 🏗️ Arquitetura do Pipeline
 
-Recebe e disponibiliza os dados para análise.
+| Camada | Tecnologia | Função |
+| :--- | :--- | :--- |
+| **Ingestão** | `FastAPI` | Upload e versionamento dos arquivos |
+| **Armazenamento** | `MinIO (S3)` | Repositório central do pipeline (dados brutos, tratados, modelos) |
+| **Banco de Dados** | `SQLite / PostgreSQL / Snowflake` | Tabelas estruturadas e dados intermediários |
+| **Processamento** | `JupyterLab` | Limpeza, EDA, modelagem |
+| **Orquestração** | `MLFlow` | Registro completo de modelos e métricas |
+| **Dashboards** | `ThingsBoard + Trendz` | Visualizações e insights |
 
-Armazenamento (MinIO/S3)
+---
 
-Guarda os dados brutos e modelos treinados.
+## 📦 1. Estrutura de Containers
 
-Modelagem (JupyterLab)
+Todos os serviços rodam via **Docker Compose**:
 
-Ambiente para análise exploratória e treinamento de modelos.
+```bash
+docker compose up -d
+```
 
-Rastreamento (MLflow)
+## 🌐 **2. Descrição das Camadas**
 
-Registro de parâmetros, métricas e artefatos de modelos.
+### **2.1 FastAPI — Ingestão**
 
-Visualização (Trendz Analytics)
+Endpoints implementados:
 
-Dashboards interativos com métricas e resultados.
+- `POST /upload`
+- `GET /list-files`
+- `GET /get-file/{id}`
 
-Essa integração visa consolidar as habilidades práticas em ciência de dados aplicada, com foco em reprodutibilidade, documentação e engenharia de aprendizado de máquina.
+Funções:
 
-O projeto reproduz e aprimora o estudo “Predicting Congenital Syphilis Cases: A Performance Evaluation of Different Machine Learning Models” (PLoS ONE, 2022).
+- Receber datasets enviados pelos usuários
+- Validar estrutura e tamanho dos arquivos
+- Enviar os arquivos validados diretamente para o bucket S3 (`raw/`)
 
-🎯 2. Objetivos
+---
 
-Reproduzir e avaliar o desempenho dos modelos apresentados no artigo científico selecionado.
+### **2.2 MinIO — Armazenamento S3**
 
-Implementar o estudo dentro de um pipeline executável via Docker Compose.
+Buckets utilizados:
 
-Integrar todas as camadas da arquitetura de BI e ML (Ingestão, Armazenamento, Modelagem, Rastreamento e Visualização).
+```
+raw/
+processed/
+models/
+dashboards/
+```
 
-Aplicar técnicas de pré-processamento, modelagem supervisionada, avaliação e visualização dos resultados.
+O MinIO funciona como o repositório central para:
 
-Documentar o processo em relatório técnico (mínimo 10 páginas), conforme exigência da disciplina.
+- Dados brutos
+- Dados tratados
+- Artefatos de modelagem
+- Modelos registrados
+- Arquivos de dashboards
 
-⚙️ 3. Arquitetura e Tecnologias
+---
 
-A Figura 1 representa o fluxo do pipeline integrado implementado no projeto, garantindo a rastreabilidade e a reprodutibilidade dos experimentos.
+### **2.3 Banco de Dados — Snowflake / SQLite / PostgreSQL**
 
-          ┌───────────────┐
-          │   FastAPI     │  ← Ingestão via /upload-dataset
-          └──────┬────────┘
-                 │
-                 ▼
-          ┌───────────────┐
-          │    MinIO (S3) │  ← Armazena CSVs e modelos
-          └──────┬────────┘
-                 │
-                 ▼
-          ┌───────────────┐
-          │   SQLite DB   │  ← Dados tratados (syphilis.db)
-          └──────┬────────┘
-                 │
-                 ▼
-          ┌───────────────┐
-          │  JupyterLab   │  ← Modelagem e Treinamento
-          └──────┬────────┘
-                 │
-                 ▼
-          ┌───────────────┐
-          │   MLflow UI   │  ← Rastreamento de runs e métricas
-          └──────┬────────┘
-                 │
-                 ▼
-          ┌───────────────┐
-          │ Trendz/Reports│ ← Visualização e análise final
-          └───────────────┘
+Responsável por:
 
+- Estruturar tabelas “limpas” após pré-processamento
+- Armazenar versões intermediárias
+- Registrar indicadores epidemiológicos
+- Servir dados para dashboards e análises externas
 
-Figura 1: Arquitetura do pipeline de MLOps para Predição de Sífilis Congênita.
+---
 
-🧩 Serviços em Contêineres
+### **2.4 JupyterLab — Processamento e Modelagem**
 
-Serviço
+Etapas realizadas:
 
-Função
+- Análise exploratória (EDA)
+- Limpeza e padronização dos dados
+- Engenharia de atributos
+- Codificação (One-Hot)
+- Balanceamento
+- Recriação dos **6 datasets** definidos no artigo:
+  - IDS, BDS, IODS, BODS, IODDS, BODDS
+- Treinamento dos **7 modelos**
+- Execução dos **6 experimentos**
+- Total de execuções: **126** (com Grid Search)
 
-Porta
+---
 
-FastAPI
+### **2.5 MLFlow — Rastreamento de Experimentos**
 
-Ingestão de dados e integração com MinIO
+Registros incluídos:
 
-8000
+- Hiperparâmetros usados em cada modelo
+- Métricas: Acurácia, F1-Score, Precisão, Sensibilidade
+- Matriz de confusão
+- Artefatos (modelos, gráficos e logs)
+- Comparação automática entre execuções
+- Pipeline completamente rastreável e reproduzível
 
-MinIO
+---
 
-Armazenamento de dados brutos e modelos
+### **2.6 ThingsBoard + Trendz — Dashboard Online**
 
-9000 / 9001
+Painéis implementados:
 
-SQLite
+- Evolução temporal dos casos previstos
+- Percentual de risco estimado
+- Variáveis mais influentes nos modelos
+- Gráficos comparativos entre datasets
+- Indicadores epidemiológicos gerais e específicos
 
-Banco estruturado local (substitui Snowflake)
+---
 
-Local
+## 🧬 **3. Metodologia**
 
-JupyterLab
+### **3.1 Dataset**
 
-Modelagem e pré-processamento
+- Origem: dados reais do Programa Mãe Coruja Pernambucana
+- Quantidade inicial:
+  - **200k+ registros**
+  - **210 atributos**
+- Após limpeza e padronização:
+  - **41.762 registros**
+  - **26 atributos finais**
+  - **826 positivos**
+  - **40.936 negativos**
 
-8888
+---
 
-MLflow
+### **3.2 Pré-Processamento**
 
-Rastreamento de modelos e métricas
+Incluiu:
 
-5001
+- Remoção de variáveis com >70% de valores ausentes
+- Padronização e correção de datas
+- Normalização de variáveis numéricas
+- Criação de novas features
+- Remoção de outliers clínicos atípicos
+- Padronização de valores categóricos
 
-Trendz/Reports
+---
 
-Dashboards e relatórios finais
+### **3.3 Balanceamento**
 
-trendz/, reports/
+Seguindo o artigo original:
 
-📊 4. Dataset
+- Técnica usada: **Undersampling**
+- Geração dos 6 datasets:
+  - IDS, BDS, IODS, BODS, IODDS, BODDS
 
-Fonte: Mendeley Data – Sífilis Congênita Dataset
+---
 
-Artigo de referência:
+### **3.4 Codificação**
 
-Predicting congenital syphilis cases: A performance evaluation of different machine learning models.
+One-Hot Encoding aplicado:
 
-PLoS ONE, 2022
+- **26 → 97 variáveis**
+- Versões:
+  - Com valores “não informado”
+  - Sem valores “não informado” (recomendado em alguns experimentos)
 
-Arquivos:
+---
 
-data/raw/data_set.csv – dados brutos das gestantes;
+### **3.5 Seleção de Atributos**
 
-data/raw/attributes.csv – descrição dos atributos.
+Estratégias utilizadas:
 
-O dataset foi utilizado exclusivamente para fins acadêmicos.
+- **SFS (Sequential Forward Selection)** – adiciona features
+- **SBS (Sequential Backward Selection)** – remove features
+- Seleção baseada em especialistas do PMCP
 
-🧠 5. Estrutura do Repositório
+---
 
-/
-├── docker-compose.yml     # Orquestração dos contêineres
-├── fastapi/               # API de ingestão (FastAPI + MinIO)
-│   └── main.py
-├── jupyterlab/            # Ambiente de análise (Dockerfile e configs)
-├── mlflow/                # Rastreamento de experimentos
-├── data/
-│   ├── raw/               # Dados brutos
-│   ├── processed/         # Dados tratados
-│   └── syphilis.db        # Base estruturada SQLite
-├── src/
-│   ├── data/              # Scripts de ingestão e pré-processamento
-│   └── models/            # Treinamento e avaliação
-├── notebooks/             # Notebooks 01–03
-├── reports/               # Gráficos e tabelas
-├── trendz/                # Dashboards exportados
-├── requirements.txt
-└── README.md
+### **3.6 Modelagem**
 
+Modelos utilizados:
 
-🚀 6. Execução do Pipeline via Docker Compose
+- Decision Tree
+- Random Forest
+- AdaBoost
+- Gradient Boosting
+- XGBoost
+- KNN
+- SVM
 
-Pré-requisitos
+Otimização:
 
-Docker Desktop e Git instalados.
+- Grid Search
+- Validação rigorosa conforme metodologia do artigo
+- **120+ combinações testadas**
 
-(Opcional) Python 3.11+ para testes locais.
+---
 
-Passos
+## 📊 **4. Resultados**
 
-Clonar o repositório:
+### **Modelos Finalistas**
 
-git clone [https://github.com/GuilhermeAlencar22/ml-syphilis-congenita.git](https://github.com/GuilhermeAlencar22/ml-syphilis-congenita.git)
+| Modelo                   | Dataset | Técnica       | F1-Score   |
+| ------------------------ | ------- | ------------- | ---------- |
+| **AdaBoost-BODS-Expert** | BODS    | Especialistas | **63.51%** |
+| **SVM-BDS-SFA**          | BDS     | SBS           | **63.04%** |
+
+Ambos próximos aos valores do artigo original.
+
+---
+
+### **Principais Achados**
+
+- O desbalanceamento extremo limita sensibilidade de todos os modelos
+- Variáveis preenchidas como “não informado” afetam fortemente o desempenho
+- AdaBoost apresentou melhor interpretabilidade
+- SVM entregou desempenho marginalmente superior
+- KNN e Decision Tree tiveram performance inferior
+
+---
+
+## 📈 **5. Dashboards e Insights**
+
+Indicadores disponíveis:
+
+- Distribuição de variáveis chave
+- Histórico temporal das previsões
+- Variáveis mais importantes de cada modelo
+- Comparação entre datasets e técnicas
+- Indicadores epidemiológicos do PMCP
+
+---
+
+## 🧪 **6. Conclusões**
+
+O pipeline desenvolvido:
+
+- ✔ Reproduz fielmente a metodologia do artigo
+- ✔ Confirma a complexidade do problema
+- ✔ Tem rastreamento completo via MLFlow
+- ✔ Gera dashboards interpretáveis
+- ✔ É modular, replicável e escalável
+
+Melhores modelos:
+
+- **AdaBoost-BODS-Expert**
+- **SVM-BDS-SFA**
+
+Ambos com F1 ≈ **63%**.
+
+---
+
+## 🚀 **7. Futuras Melhorias**
+
+- Imputação avançada (MICE, missForest)
+- Testar modelos modernos (CatBoost, LightGBM)
+- Explicar modelos com SHAP
+- Análise geoespacial e temporal
+- Pipeline CI/CD para inferência contínua
+
+---
+
+## 🏁 **8. Como Executar o Projeto**
+
+### **1. Clonar o repositório**
+
+```bash
+git clone https://github.com/usuario/ml-syphilis-congenita.git
 cd ml-syphilis-congenita
+```
 
+### **2. Subir os serviços**
 
-Construir e levantar a infraestrutura:
+```bash
+docker compose up -d
+```
 
-docker-compose up --build
+### **3. Acessar os serviços**
 
+| Serviço       | URL                                                      |
+| ------------- | -------------------------------------------------------- |
+| FastAPI       | http://localhost:8000/docs                               |
+| MinIO Console | http://localhost:9001                                    |
+| MLFlow        | http://localhost:5001                                    |
+| JupyterLab    | http://localhost:8888                                    |
 
-Acessar os serviços
 
-Serviço
-
-URL
-
-Função
-
-JupyterLab
-
-http://localhost:8888
-
-Análise e modelagem
-
-FastAPI (Swagger)
-
-http://localhost:8000/docs
-
-Upload de datasets
-
-MinIO Console
-
-http://localhost:9001
-
-Armazenamento S3
-
-MLflow UI
-
-http://localhost:5001
-
-Rastreamento de experimentos
-
-🔐 Credenciais do MinIO:
-Usuário: admin
-Senha: admin12345
-
-Para encerrar:
-
-docker-compose down
-
-
-🔄 7. Pipeline de Dados
-
-FastAPI → MinIO: O endpoint /upload-dataset realiza upload de arquivos .csv para o bucket syphilis-datasets.
-
-MinIO → SQLite: O notebook 02-preprocessamento.ipynb faz leitura, limpeza e gravação dos dados no banco data/syphilis.db.
-
-SQLite → Jupyter (Modelagem): O notebook 03-treinamento.ipynb lê os dados estruturados, aplica o modelo Random Forest e registra resultados no MLflow.
-
-MLflow → Trendz/Reports: Resultados e métricas são exportados para reports/ e visualizados em dashboards no Trendz Analytics.
-
-📈 8. Resultados
-
-Modelagem com Random Forest (n_estimators=300, max_depth=12)
-
-Métrica Média
-
-Valor
-
-Accuracy
-
-~0.84
-
-F1-score
-
-~0.81
-
-ROC-AUC
-
-~0.87
-
-Gráficos e métricas exportados para reports/:
-
-Matriz de confusão
-
-Curva ROC e PR
-
-Importância das features
-
-🧩 9. Componentes do Pipeline
-
-Componente
-
-Função
-
-Localização
-
-FastAPI
-
-Ingestão de dados e integração com MinIO
-
-fastapi/main.py
-
-MinIO
-
-Armazenamento de datasets e modelos
-
-minio/
-
-SQLite
-
-Base estruturada local
-
-data/syphilis.db
-
-MLflow
-
-Registro de parâmetros e métricas
-
-mlflow/
-
-Trendz
-
-Visualização de dashboards
-
-trendz/
-
-✅ 10. Itens Entregues
-
-✅ Pipeline completo executável via Docker Compose
-
-✅ API funcional com upload para MinIO
-
-✅ Base estruturada em SQLite
-
-✅ Treinamento com MLflow integrado
-
-✅ Dashboards exportados para Trendz
-
-✅ README e documentação técnica completos
-
-🧑‍🏫 11. Observações Finais
-
-Projeto de caráter acadêmico, sem finalidade diagnóstica.
-
-SQLite foi utilizado no lugar de Snowflake, atendendo ao requisito de base estruturada.
-
-Toda a arquitetura pode ser facilmente migrada para AWS (S3 + RDS + SageMaker + MLflow Tracking Server).
-
-O projeto está pronto para reprodutibilidade e avaliação completa pela banca docente.
-
-📜 Licença
-
-Distribuído sob a licença MIT.
-
-Consulte o arquivo LICENSE para mais detalhes.
